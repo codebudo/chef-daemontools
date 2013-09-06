@@ -27,7 +27,23 @@ bash "install_daemontools" do
     (cd /tmp; tar zxvf daemontools-0.76.tar.gz)
     (cd /tmp/admin/daemontools-0.76; perl -pi -e 's/extern int errno;/\#include <errno.h>/' src/error.h)
     (cd /tmp/admin/daemontools-0.76; package/compile)
-    (cd /tmp/admin/daemontools-0.76; mv command/* #{node['daemontools']['bin_dir']})
+    (cd /tmp/admin/daemontools-0.76; package/upgrade)
+    (mkdir /service;)
     EOH
-  not_if {::File.exists?("#{node['daemontools']['bin_dir']}/svscan")}
+  not_if {::File.exists?("/usr/local/bin/svscan")}
+end
+
+template "/etc/init/svscan.conf" do
+  source "svscan.conf.erb"
+  owner "root"
+  group "root"
+  mode "0755"
+end
+
+bash "restart_daemontools" do
+  user "root"
+  cwd "/tmp"
+  code <<-EOH
+   (initctl reload-configuration && initctl start svscan )
+  EOH
 end
