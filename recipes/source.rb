@@ -21,13 +21,13 @@ include_recipe "build-essential"
 
 bash "install_daemontools" do
   user "root"
-  cwd "/tmp"
+  cwd "/usr/local/src"
   code <<-EOH
-    (cd /tmp; wget http://cr.yp.to/daemontools/daemontools-0.76.tar.gz)
-    (cd /tmp; tar zxvf daemontools-0.76.tar.gz)
-    (cd /tmp/admin/daemontools-0.76; perl -pi -e 's/extern int errno;/\#include <errno.h>/' src/error.h)
-    (cd /tmp/admin/daemontools-0.76; package/compile)
-    (cd /tmp/admin/daemontools-0.76; package/upgrade)
+    (cd /usr/local/src; wget http://cr.yp.to/daemontools/daemontools-0.76.tar.gz)
+    (cd /usr/local/src; tar zxvf daemontools-0.76.tar.gz)
+    (cd /usr/local/src/admin/daemontools-0.76; perl -pi -e 's/extern int errno;/\#include <errno.h>/' src/error.h)
+    (cd /usr/local/src/admin/daemontools-0.76; package/compile)
+    (cd /usr/local/src/admin/daemontools-0.76; package/upgrade)
     (mkdir /service;)
     EOH
   not_if {::File.exists?("/usr/local/bin/svscan")}
