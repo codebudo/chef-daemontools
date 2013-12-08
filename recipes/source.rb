@@ -23,14 +23,19 @@ bash "install_daemontools" do
   user "root"
   cwd "/usr/local/src"
   code <<-EOH
-    (cd /usr/local/src; wget http://cr.yp.to/daemontools/daemontools-0.76.tar.gz)
+    (cd /usr/local/src; curl -O http://cr.yp.to/daemontools/daemontools-0.76.tar.gz)
     (cd /usr/local/src; tar zxvf daemontools-0.76.tar.gz)
     (cd /usr/local/src/admin/daemontools-0.76; perl -pi -e 's/extern int errno;/\#include <errno.h>/' src/error.h)
     (cd /usr/local/src/admin/daemontools-0.76; package/compile)
-    (cd /usr/local/src/admin/daemontools-0.76; package/upgrade)
-    (mkdir /service;)
+    (cd /usr/local/src/admin/daemontools-0.76; mv command/* #{node['daemontools']['bin_dir']}/)
     EOH
-  not_if {::File.exists?("/usr/local/bin/svscan")}
+  not_if {::File.exists?("#{node['daemontools']['bin_dir']}/svscan")}
+end
+
+directory node['daemontools']['service_dir'] do
+  owner "root"
+  group "root"
+  mode  "755"
 end
 
 template "/etc/init/svscan.conf" do
@@ -44,6 +49,7 @@ bash "restart_daemontools" do
   user "root"
   cwd "/tmp"
   code <<-EOH
-   (initctl reload-configuration && initctl start svscan )
+   (initctl reload-configuration && initctl start svscan)
   EOH
+  not_if "pgrep svscan"
 end
