@@ -38,18 +38,9 @@ directory node['daemontools']['service_dir'] do
   mode  "755"
 end
 
-template "/etc/init/svscan.conf" do
-  source "svscan.conf.erb"
-  owner "root"
-  group "root"
-  mode "0755"
+if node[:platform_family] == "centos" && node[:platform_version].to_f >= 6.0
+  include_recipe "daemontools::upstart"
+else
+  include_recipe "daemontools::inittab"
 end
 
-bash "restart_daemontools" do
-  user "root"
-  cwd "/tmp"
-  code <<-EOH
-   (initctl reload-configuration && initctl start svscan)
-  EOH
-  not_if "pgrep svscan"
-end
